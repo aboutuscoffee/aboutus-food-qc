@@ -119,10 +119,13 @@ select id, '工程2：絞り・挟み', '見た目', 'クリームがはみ出�
 from qc_products where key = 'raisin-butter-sand';
 
 insert into qc_checklist_items (product_id, process_name, item_name, criteria_text, ng_example_text, sort_order)
-select id, '工程3：個包装・冷凍保存', '包装', '破れ・液漏れがない、袋が正しく閉じている', '', 6
+select id, '工程3：個包装・冷凍保存', 'ダックワーズの湿り', '挟んだ直後に確認し、ダックワーズがサクッとした状態を保っている（湿っていない）', 'クリームの水分でダックワーズがしっとり・べたついている＝時間を置きすぎ／クリームの水分量が多い', 6
 from qc_products where key = 'raisin-butter-sand';
 insert into qc_checklist_items (product_id, process_name, item_name, criteria_text, ng_example_text, sort_order)
-select id, '工程3：個包装・冷凍保存', '保存', '冷凍保存', '', 7
+select id, '工程3：個包装・冷凍保存', '包装', '破れ・液漏れがない、袋が正しく閉じている', '', 7
+from qc_products where key = 'raisin-butter-sand';
+insert into qc_checklist_items (product_id, process_name, item_name, criteria_text, ng_example_text, sort_order)
+select id, '工程3：個包装・冷凍保存', '保存', '冷凍保存', '', 8
 from qc_products where key = 'raisin-butter-sand';
 
 -- ② カッサータ
