@@ -11,8 +11,11 @@ export default function ProductPanel({
   checks,
   results,
   staff,
+  processMedia,
   onSaveCheck,
   onUploadReferenceImage,
+  onUploadProcessMedia,
+  onDeleteProcessMedia,
 }) {
   const [showForm, setShowForm] = useState(false);
   const [selectedCheckId, setSelectedCheckId] = useState(null);
@@ -40,6 +43,9 @@ export default function ProductPanel({
             product={product}
             items={productItems}
             staff={staff}
+            processMedia={processMedia}
+            onUploadProcessMedia={(processName, file) => onUploadProcessMedia(product, processName, file)}
+            onDeleteProcessMedia={onDeleteProcessMedia}
             onSave={onSaveCheck}
             onCancel={() => setShowForm(false)}
           />

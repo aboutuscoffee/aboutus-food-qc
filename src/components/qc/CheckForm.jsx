@@ -1,11 +1,21 @@
 import { useMemo, useState } from 'react';
-import { groupByProcess } from '../../lib/selectors';
+import { groupByProcess, mediaForProcess } from '../../lib/selectors';
+import ProcessMediaGallery from './ProcessMediaGallery';
 
 function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
-export default function CheckForm({ product, items, staff, onSave, onCancel }) {
+export default function CheckForm({
+  product,
+  items,
+  staff,
+  processMedia,
+  onUploadProcessMedia,
+  onDeleteProcessMedia,
+  onSave,
+  onCancel,
+}) {
   const groups = useMemo(() => groupByProcess(items), [items]);
   const [staffId, setStaffId] = useState('');
   const [checkedByName, setCheckedByName] = useState('');
@@ -94,6 +104,11 @@ export default function CheckForm({ product, items, staff, onSave, onCancel }) {
           <h3 className="text-sm font-bold text-taupe-heading border-b border-taupe-border pb-1 mb-2">
             {g.process_name}
           </h3>
+          <ProcessMediaGallery
+            media={mediaForProcess(processMedia, product.id, g.process_name)}
+            onUpload={(file) => onUploadProcessMedia(g.process_name, file)}
+            onDelete={onDeleteProcessMedia}
+          />
           <div className="space-y-3">
             {g.items.map((item) => {
               const a = answers[item.id] ?? {};

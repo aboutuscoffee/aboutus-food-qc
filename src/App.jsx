@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { fetchAll, upsertItem, deleteItem, saveCheck, uploadReferenceImage } from './lib/db';
+import { fetchAll, upsertItem, deleteItem, saveCheck, uploadReferenceImage, uploadProcessMedia } from './lib/db';
 import ProductTabs from './components/qc/ProductTabs';
 import ProductPanel from './components/qc/ProductPanel';
 import StaffManager from './components/qc/StaffManager';
@@ -40,6 +40,16 @@ export default function App() {
       ...d,
       products: d.products.map((p) => (p.id === saved.id ? saved : p)),
     }));
+  }, []);
+
+  const onUploadProcessMedia = useCallback(async (product, processName, file) => {
+    const saved = await uploadProcessMedia(product.id, product.key, processName, file);
+    setData((d) => ({ ...d, processMedia: [...d.processMedia, saved] }));
+  }, []);
+
+  const onDeleteProcessMedia = useCallback(async (id) => {
+    await deleteItem('qc_process_media', id);
+    setData((d) => ({ ...d, processMedia: d.processMedia.filter((m) => m.id !== id) }));
   }, []);
 
   const onAddStaff = useCallback(async (name) => {
@@ -101,8 +111,11 @@ export default function App() {
                 checks={data.checks}
                 results={data.results}
                 staff={data.staff}
+                processMedia={data.processMedia}
                 onSaveCheck={onSaveCheck}
                 onUploadReferenceImage={onUploadReferenceImage}
+                onUploadProcessMedia={onUploadProcessMedia}
+                onDeleteProcessMedia={onDeleteProcessMedia}
               />
             )}
           </>

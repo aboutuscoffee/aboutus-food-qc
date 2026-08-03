@@ -39,3 +39,10 @@ export function activeStaff(staff) {
 export function staffName(staff, staffId) {
   return staff.find((s) => s.id === staffId)?.name ?? '（不明）';
 }
+
+export function mediaForProcess(processMedia, productId, processName) {
+  return processMedia
+    .filter((m) => m.product_id === productId && m.process_name === processName)
+    .slice()
+    .sort((a, b) => a.sort_order - b.sort_order);
+}

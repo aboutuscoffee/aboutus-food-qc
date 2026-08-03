@@ -1,15 +1,16 @@
 import { supabase } from './supabase';
 
 export async function fetchAll() {
-  const [products, items, staff, checks, results] = await Promise.all([
+  const [products, items, staff, checks, results, processMedia] = await Promise.all([
     supabase.from('qc_products').select('*').order('sort_order'),
     supabase.from('qc_checklist_items').select('*').order('sort_order'),
     supabase.from('qc_staff').select('*').order('sort_order'),
     supabase.from('qc_checks').select('*').order('check_date', { ascending: false }),
     supabase.from('qc_check_results').select('*'),
+    supabase.from('qc_process_media').select('*').order('sort_order'),
   ]);
 
-  for (const res of [products, items, staff, checks, results]) {
+  for (const res of [products, items, staff, checks, results, processMedia]) {
     if (res.error) throw new Error(res.error.message);
   }
 
@@ -19,6 +20,7 @@ export async function fetchAll() {
     staff: staff.data ?? [],
     checks: checks.data ?? [],
     results: results.data ?? [],
+    processMedia: processMedia.data ?? [],
   };
 }
 
@@ -75,4 +77,19 @@ export async function uploadReferenceImage(productKey, file) {
   if (error) throw new Error(error.message);
   const { data } = supabase.storage.from('qc-photos').getPublicUrl(path);
   return data.publicUrl;
+}
+
+export async function uploadProcessMedia(productId, productKey, processName, file) {
+  const path = `${productKey}/process/${Date.now()}${safeExt(file.name)}`;
+  const { error } = await supabase.storage.from('qc-photos').upload(path, file);
+  if (error) throw new Error(error.message);
+  const { data } = supabase.storage.from('qc-photos').getPublicUrl(path);
+  const mediaType = file.type.startsWith('video/') ? 'video' : 'image';
+  return upsertItem('qc_process_media', {
+    product_id: productId,
+    process_name: processName,
+    media_type: mediaType,
+    media_url: data.publicUrl,
+    media_name: file.name,
+  });
 }
