@@ -1,67 +1,20 @@
 import { supabase } from './supabase';
+import { NOTIFY_STAFF_KEY } from './constants';
 
 export async function fetchAll() {
-  const [products, items, staff, checks, results, processMedia] = await Promise.all([
-    supabase.from('qc_products').select('*').order('sort_order'),
-    supabase.from('qc_checklist_items').select('*').order('sort_order'),
-    supabase.from('qc_staff').select('*').order('sort_order'),
-    supabase.from('qc_checks').select('*').order('check_date', { ascending: false }),
-    supabase.from('qc_check_results').select('*'),
-    supabase.from('qc_process_media').select('*').order('sort_order'),
+  const [entries, referenceLibrary] = await Promise.all([
+    supabase.from('qc_entries').select('*').order('date', { ascending: false }),
+    supabase.from('qc_reference_library').select('*'),
   ]);
 
-  for (const res of [products, items, staff, checks, results, processMedia]) {
+  for (const res of [entries, referenceLibrary]) {
     if (res.error) throw new Error(res.error.message);
   }
 
   return {
-    products: products.data ?? [],
-    items: items.data ?? [],
-    staff: staff.data ?? [],
-    checks: checks.data ?? [],
-    results: results.data ?? [],
-    processMedia: processMedia.data ?? [],
+    entries: entries.data ?? [],
+    referenceLibrary: referenceLibrary.data ?? [],
   };
-}
-
-export async function upsertItem(table, item, pk = 'id') {
-  const idVal = item[pk];
-  if (idVal != null) {
-    const { [pk]: _omit, ...fields } = item;
-    const { data, error } = await supabase.from(table).update(fields).eq(pk, idVal).select();
-    if (error) throw new Error(error.message);
-    if (data && data.length > 0) return data[0];
-    const { data: inserted, error: insertError } = await supabase.from(table).insert(item).select().single();
-    if (insertError) throw new Error(insertError.message);
-    return inserted;
-  }
-  const { data, error } = await supabase.from(table).insert(item).select().single();
-  if (error) throw new Error(error.message);
-  return data;
-}
-
-export async function deleteItem(table, id, pk = 'id') {
-  const { error } = await supabase.from(table).delete().eq(pk, id);
-  if (error) throw new Error(error.message);
-}
-
-// チェック1回分（ヘッダー + 項目ごとの結果）をまとめて保存する
-export async function saveCheck(checkFields, itemResults) {
-  const { data: check, error: checkError } = await supabase
-    .from('qc_checks')
-    .insert(checkFields)
-    .select()
-    .single();
-  if (checkError) throw new Error(checkError.message);
-
-  const rows = itemResults.map((r) => ({ ...r, check_id: check.id }));
-  const { data: results, error: resultsError } = await supabase
-    .from('qc_check_results')
-    .insert(rows)
-    .select();
-  if (resultsError) throw new Error(resultsError.message);
-
-  return { check, results };
 }
 
 // Supabase Storage rejects object keys containing non-ASCII characters (e.g. Japanese filenames),
@@ -71,25 +24,54 @@ function safeExt(filename) {
   return m ? m[0].toLowerCase() : '';
 }
 
-export async function uploadReferenceImage(productKey, file) {
-  const path = `${productKey}/${Date.now()}${safeExt(file.name)}`;
+async function uploadMedia(folder, file) {
+  const path = `${folder}/${Date.now()}${safeExt(file.name)}`;
   const { error } = await supabase.storage.from('qc-photos').upload(path, file);
   if (error) throw new Error(error.message);
   const { data } = supabase.storage.from('qc-photos').getPublicUrl(path);
   return data.publicUrl;
 }
 
-export async function uploadProcessMedia(productId, productKey, processName, file) {
-  const path = `${productKey}/process/${Date.now()}${safeExt(file.name)}`;
-  const { error } = await supabase.storage.from('qc-photos').upload(path, file);
-  if (error) throw new Error(error.message);
-  const { data } = supabase.storage.from('qc-photos').getPublicUrl(path);
+export async function uploadEntryMedia(file) {
+  const url = await uploadMedia('entries', file);
   const mediaType = file.type.startsWith('video/') ? 'video' : 'image';
-  return upsertItem('qc_process_media', {
-    product_id: productId,
-    process_name: processName,
-    media_type: mediaType,
-    media_url: data.publicUrl,
-    media_name: file.name,
+  return { url, name: file.name, type: mediaType };
+}
+
+export async function uploadReferencePhoto(file) {
+  const url = await uploadMedia('reference', file);
+  return { url, name: file.name };
+}
+
+export async function saveEntry(entry) {
+  const { data, error } = await supabase.from('qc_entries').insert(entry).select().single();
+  if (error) throw new Error(error.message);
+
+  // aboutus-staff-todo と共有しているSupabaseの notifications テーブルに通知を1件insertする
+  // （通知に失敗してもチェック記録自体は保存済みなので、ここではエラーを投げない）
+  const message = `[${entry.store}] ${entry.dish_name} のQCログが保存されました（${entry.disposition}）`;
+  const { error: notifyError } = await supabase.from('notifications').insert({
+    staff_key: NOTIFY_STAFF_KEY,
+    type: 'qc_log',
+    message,
+    read: false,
   });
+  if (notifyError) console.error('notification insert failed:', notifyError.message);
+
+  return data;
+}
+
+export async function deleteEntry(id) {
+  const { error } = await supabase.from('qc_entries').delete().eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
+export async function saveReferenceItem(dishName, fields) {
+  const { data, error } = await supabase
+    .from('qc_reference_library')
+    .upsert({ dish_name: dishName, ...fields }, { onConflict: 'dish_name' })
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return data;
 }

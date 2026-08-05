@@ -1,55 +1,35 @@
 # aboutus-food-qc
 
-フード仕込みのクオリティチェックを記録するアプリ。React + Vite + Tailwind CSS + Supabase。
+フードメニューの不具合・仕込みミスを記録する「QCログ」アプリ。React + Vite + Supabase。
+伏見・二条の両店舗共通で使用。
 
-対象：レーズンバターサンド／カッサータ／紅茶バスクチーズケーキ（`scripts/schema.sql` で追加可能）
-
-aboutus-staff-todo / aboutus-beans-profile とは独立したアプリ。Supabaseプロジェクトのみ共有（テーブルは独立、staffテーブルとは連携しない）。
+aboutus-staff-todo / aboutus-beans-profile とは独立したアプリ。Supabaseプロジェクトのみ共有（テーブルは独立）。
+記録保存時にaboutus-staff-todoの`notifications`テーブルへ通知を1件insertし、松田夕奈さんに通知が届く。
 
 ## セットアップ（初回のみ・手動）
 
 1. **Supabaseにテーブルを作成**
-   Supabase SQL Editorで [`scripts/schema.sql`](scripts/schema.sql) の内容を実行する（テーブル・RLS・Storageバケット・初期の商品/チェック項目データが入る）。
+   Supabase SQL Editorで [`scripts/migration_v2_incident_log.sql`](scripts/migration_v2_incident_log.sql) の内容を実行する（旧テーブルの削除＋新テーブルqc_entries/qc_reference_libraryの作成）。
 
 2. **ローカル動作確認**
    ```bash
    npm install
    npm run dev
    ```
-   `.env` はすでに用意済み（既存Supabaseプロジェクトの接続情報）。
+   `.env` はすでに用意済み（既存Supabaseプロジェクトの接続情報＋管理者PIN）。
 
-3. **GitHubリポジトリを作成してpush**
-   ```bash
-   gh repo create aboutuscoffee/aboutus-food-qc --public --source=. --remote=origin
-   git push -u origin main
-   ```
-   （`gh` が無ければGitHub上で手動作成してリモート追加）
-
-4. **GitHub Pagesを有効化**
-   リポジトリの Settings → Pages → Source を「GitHub Actions」に設定。
-
-5. **GitHub Secretsを設定**
-   Settings → Secrets and variables → Actions で以下を追加：
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY`
-
-   （値は `.env` と同じ）
-
-6. mainにpushすると自動デプロイされ、`https://aboutuscoffee.github.io/aboutus-food-qc/` で公開される。
+3. **GitHubリポジトリ・Pages・Secrets**（既に設定済みならスキップ）
+   - Secrets: `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` / `VITE_MANAGER_PIN`
 
 ## 使い方
 
-- 商品タブを選んで「＋ 新規チェックを記録」→ 担当者・チェック者を選び、項目ごとにOK/NGとコメントを記入して保存
-- 商品ごとに「完成理想図」（お手本写真）を1枚登録できる（差し替え可能）
-- 「スタッフ名簿を管理」から担当者の追加・無効化ができる
-- チェック履歴は日付ピルから選んで詳細を確認できる
+- **新規記録**：カテゴリ→メニュー→店舗を選び、必須項目（記録作成日・問題発生日・作った人・提供/廃棄・推測要因）と任意項目（確認者名・コメント・写真or動画・総合メモ）を入力して保存
+- **履歴**：店舗・カテゴリ・メニュー・日付で絞り込み、記録をタップして詳細（お手本との比較含む）を確認・削除
+- **お手本**：メニューごとのお手本写真・動画リンク・要点メモを閲覧。編集は管理者PIN（`.env`の`VITE_MANAGER_PIN`）でロック
 
 ## データ構造
 
-- `qc_products` — 商品マスタ（お手本写真URL含む）
-- `qc_checklist_items` — 商品ごとのチェック項目マスタ（工程名・合格基準・NG例）
-- `qc_staff` — 担当者名簿（このアプリ専用、staff-todoとは別）
-- `qc_checks` — チェック1回分のヘッダー（商品・担当者・チェック者・日付・総合判定）
-- `qc_check_results` — チェック1回分の項目ごとの結果（OK/NG・コメント）
+- `qc_entries` — QCログ1件（店舗・カテゴリ・メニュー名・日付・問題発生日・作った人・確認者・提供/廃棄・推測要因・写真or動画・総合メモ）
+- `qc_reference_library` — メニューごとのお手本（写真・動画リンク・要点メモ）。`dish_name`がユニークキー
 
-`qc_checks`と`qc_check_results`が正規化されているため、将来「担当者ごとのNG傾向」等の集計画面を追加しやすい構造になっている。
+画像・動画は既存のSupabase Storageバケット`qc-photos`に保存（`entries/`と`reference/`のフォルダに分離）。
