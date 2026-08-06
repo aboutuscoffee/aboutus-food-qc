@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 
 function fmtDate(iso) {
   if (!iso) return '';
@@ -24,7 +24,7 @@ export default function ReferenceListItem({
   const [videoUrl, setVideoUrl] = useState('');
   const [points, setPoints] = useState('');
   const [saving, setSaving] = useState(false);
-  const photoInputRef = useRef(null);
+  const photoInputId = 'qcf-ref-photo-input-' + useId();
 
   useEffect(() => {
     if (editing) {
@@ -80,15 +80,15 @@ export default function ReferenceListItem({
       {open && editing && (
         <div className="qcf-ref-edit-box">
           <div className="qcf-field">
-            <label>お手本写真</label>
-            <label className="qcf-media-zone" onClick={() => photoInputRef.current?.click()}>
+            <label htmlFor={photoInputId}>お手本写真</label>
+            <label className="qcf-media-zone" htmlFor={photoInputId}>
               {photoPreviewUrl ? (
                 <img className="qcf-media-thumb" src={photoPreviewUrl} />
               ) : (
                 <div style={{ fontSize: 12, color: 'var(--ink-soft)' }}>タップして写真を選択</div>
               )}
             </label>
-            <input ref={photoInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoChange} />
+            <input id={photoInputId} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhotoChange} />
           </div>
           <div className="qcf-field" style={{ marginTop: 8 }}>
             <label>動画リンク（YouTube・Googleドライブ等）</label>

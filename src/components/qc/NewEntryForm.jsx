@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { STORES, CATEGORIES, MENUS } from '../../lib/constants';
 
 function today() {
@@ -33,7 +33,6 @@ export default function NewEntryForm({ referenceLibrary, onUploadMedia, onSave, 
   const [media, setMedia] = useState(null); // { file, previewUrl, type }
   const [refPanelOpen, setRefPanelOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  const mediaInputRef = useRef(null);
 
   const set = (field, value) => setDraft((d) => ({ ...d, [field]: value }));
 
@@ -231,8 +230,8 @@ export default function NewEntryForm({ referenceLibrary, onUploadMedia, onSave, 
             </div>
           </div>
           <div className="qcf-field">
-            <label>写真または動画</label>
-            <label className="qcf-media-zone" onClick={() => mediaInputRef.current?.click()}>
+            <label htmlFor="qcf-media-input">写真または動画</label>
+            <label className="qcf-media-zone" htmlFor="qcf-media-input">
               {media ? (
                 media.type === 'image' ? (
                   <>
@@ -252,7 +251,7 @@ export default function NewEntryForm({ referenceLibrary, onUploadMedia, onSave, 
                 </>
               )}
             </label>
-            <input ref={mediaInputRef} type="file" accept="image/*,video/*" style={{ display: 'none' }} onChange={handleMediaChange} />
+            <input id="qcf-media-input" type="file" accept="image/*,video/*" style={{ display: 'none' }} onChange={handleMediaChange} />
           </div>
         </div>
         <div className="qcf-field">
