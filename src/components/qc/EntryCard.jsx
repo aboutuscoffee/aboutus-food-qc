@@ -4,6 +4,12 @@ function fmtDate(iso) {
   return `${y}/${m}/${d}`;
 }
 
+function dispositionStyle(disposition) {
+  if (disposition === '提供') return { background: 'var(--good-soft)', color: '#33452C' };
+  if (disposition === '廃棄') return { background: 'var(--warn-soft)', color: 'var(--warn)' };
+  return { background: 'var(--amber-soft)', color: 'var(--dark)' };
+}
+
 function refUsable(r) {
   if (!r) return null;
   if (!r.photo_url && !r.video_url && !r.points) return null;
@@ -48,8 +54,7 @@ export default function EntryCard({ entry: e, open, onToggle, reference, onDelet
               padding: '3px 12px',
               borderRadius: 999,
               marginBottom: 8,
-              background: e.disposition === '提供' ? 'var(--good-soft)' : 'var(--warn-soft)',
-              color: e.disposition === '提供' ? '#33452C' : 'var(--warn)',
+              ...dispositionStyle(e.disposition),
             }}
           >
             {e.disposition}

@@ -55,7 +55,7 @@ export default function NewEntryForm({ referenceLibrary, onUploadMedia, onSave, 
     if (!draft.date) missing.push('記録作成日');
     if (!draft.foundDate) missing.push('問題発生日');
     if (!draft.maker.trim()) missing.push('作った人');
-    if (!draft.disposition) missing.push('提供 / 廃棄');
+    if (!draft.disposition) missing.push('提供 / 廃棄 / 保管中');
     if (!draft.cause.trim()) missing.push('推測できる要因');
     if (missing.length > 0) {
       showToast('必須項目を入力してください：' + missing.join('・'), true);
@@ -214,10 +214,10 @@ export default function NewEntryForm({ referenceLibrary, onUploadMedia, onSave, 
           </div>
           <div className="qcf-field">
             <label>
-              提供 / 廃棄<span className="qcf-req-mark">*</span>
+              提供 / 廃棄 / 保管中<span className="qcf-req-mark">*</span>
             </label>
             <div className="qcf-toggle-group">
-              {['提供', '廃棄'].map((v) => (
+              {['提供', '廃棄', '保管中'].map((v) => (
                 <button
                   key={v}
                   type="button"

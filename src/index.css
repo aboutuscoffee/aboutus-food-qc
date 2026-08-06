@@ -75,6 +75,7 @@ body {
 .qcf-toggle-opt { flex: 1; padding: 9px 8px; border: 1px solid var(--line); border-radius: 6px; font-size: 13px; cursor: pointer; background: #fff; color: var(--ink); }
 .qcf-toggle-opt.active-提供 { background: var(--good); color: #fff; border-color: var(--good); font-weight: 500; }
 .qcf-toggle-opt.active-廃棄 { background: var(--warn); color: #fff; border-color: var(--warn); font-weight: 500; }
+.qcf-toggle-opt.active-保管中 { background: var(--amber); color: #fff; border-color: var(--amber); font-weight: 500; }
 .qcf-ref-toggle { display: flex; justify-content: space-between; align-items: center; background: var(--blue-soft); border-radius: 8px; padding: 10px 12px; cursor: pointer; margin-bottom: 4px; }
 .qcf-ref-toggle-label { font-size: 13px; color: var(--blue); font-weight: 500; display: flex; align-items: center; gap: 6px; }
 .qcf-ref-panel { border: 0.5px solid var(--line); border-radius: 8px; padding: 10px; margin-bottom: 12px; display: grid; grid-template-columns: 96px 1fr; gap: 12px; background: #fff; }
