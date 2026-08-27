@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { STORES, CATEGORIES, MENUS } from '../../lib/constants';
 import EntryCard from './EntryCard';
 
-export default function HistoryTab({ entries, referenceLibrary, onDelete, showToast }) {
+export default function HistoryTab({ entries, referencePoints, referencePointMedia, onDelete, showToast }) {
   const [filterStore, setFilterStore] = useState('all');
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterMenu, setFilterMenu] = useState('all');
@@ -72,7 +72,8 @@ export default function HistoryTab({ entries, referenceLibrary, onDelete, showTo
             entry={e}
             open={openEntryId === e.id}
             onToggle={() => setOpenEntryId((cur) => (cur === e.id ? null : e.id))}
-            reference={referenceLibrary.find((r) => r.dish_name === e.dish_name)}
+            referencePoints={referencePoints}
+            referencePointMedia={referencePointMedia}
             onDelete={() => handleDelete(e.id)}
           />
         ))

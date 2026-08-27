@@ -2,18 +2,20 @@ import { supabase } from './supabase';
 import { NOTIFY_STAFF_KEY } from './constants';
 
 export async function fetchAll() {
-  const [entries, referenceLibrary] = await Promise.all([
+  const [entries, referencePoints, referencePointMedia] = await Promise.all([
     supabase.from('qc_entries').select('*').order('date', { ascending: false }),
-    supabase.from('qc_reference_library').select('*'),
+    supabase.from('qc_reference_points').select('*').order('sort_order'),
+    supabase.from('qc_reference_point_media').select('*').order('sort_order'),
   ]);
 
-  for (const res of [entries, referenceLibrary]) {
+  for (const res of [entries, referencePoints, referencePointMedia]) {
     if (res.error) throw new Error(res.error.message);
   }
 
   return {
     entries: entries.data ?? [],
-    referenceLibrary: referenceLibrary.data ?? [],
+    referencePoints: referencePoints.data ?? [],
+    referencePointMedia: referencePointMedia.data ?? [],
   };
 }
 
@@ -38,9 +40,10 @@ export async function uploadEntryMedia(file) {
   return { url, name: file.name, type: mediaType };
 }
 
-export async function uploadReferencePhoto(file) {
-  const url = await uploadMedia('reference', file);
-  return { url, name: file.name };
+export async function uploadPointMedia(file) {
+  const url = await uploadMedia('reference-points', file);
+  const mediaType = file.type.startsWith('video/') ? 'video' : 'image';
+  return { url, name: file.name, type: mediaType };
 }
 
 export async function saveEntry(entry) {
@@ -66,12 +69,35 @@ export async function deleteEntry(id) {
   if (error) throw new Error(error.message);
 }
 
-export async function saveReferenceItem(dishName, fields) {
+export async function savePoint(fields) {
+  const { id, ...rest } = fields;
+  if (id != null) {
+    const { data, error } = await supabase.from('qc_reference_points').update(rest).eq('id', id).select().single();
+    if (error) throw new Error(error.message);
+    return data;
+  }
+  const { data, error } = await supabase.from('qc_reference_points').insert(rest).select().single();
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+export async function deletePoint(id) {
+  const { error } = await supabase.from('qc_reference_points').delete().eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
+export async function addPointMedia(pointId, file) {
+  const uploaded = await uploadPointMedia(file);
   const { data, error } = await supabase
-    .from('qc_reference_library')
-    .upsert({ dish_name: dishName, ...fields }, { onConflict: 'dish_name' })
+    .from('qc_reference_point_media')
+    .insert({ point_id: pointId, media_type: uploaded.type, media_url: uploaded.url, media_name: uploaded.name })
     .select()
     .single();
   if (error) throw new Error(error.message);
   return data;
+}
+
+export async function deletePointMedia(id) {
+  const { error } = await supabase.from('qc_reference_point_media').delete().eq('id', id);
+  if (error) throw new Error(error.message);
 }

@@ -1,5 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
-import { fetchAll, saveEntry, deleteEntry, uploadEntryMedia, uploadReferencePhoto, saveReferenceItem } from './lib/db';
+import {
+  fetchAll,
+  saveEntry,
+  deleteEntry,
+  uploadEntryMedia,
+  savePoint,
+  deletePoint,
+  addPointMedia,
+  deletePointMedia,
+} from './lib/db';
 import NewEntryForm from './components/qc/NewEntryForm';
 import HistoryTab from './components/qc/HistoryTab';
 import ReferenceTab from './components/qc/ReferenceTab';
@@ -31,13 +40,36 @@ export default function App() {
     setData((d) => ({ ...d, entries: d.entries.filter((e) => e.id !== id) }));
   }, []);
 
-  const onSaveReferenceItem = useCallback(async (dishName, fields) => {
-    const saved = await saveReferenceItem(dishName, fields);
-    setData((d) => {
-      const rest = d.referenceLibrary.filter((r) => r.dish_name !== dishName);
-      return { ...d, referenceLibrary: [...rest, saved] };
-    });
+  const onAddPoint = useCallback(async (fields) => {
+    const saved = await savePoint(fields);
+    setData((d) => ({ ...d, referencePoints: [...d.referencePoints, saved] }));
     return saved;
+  }, []);
+
+  const onUpdatePointText = useCallback(async (id, text) => {
+    const saved = await savePoint({ id, point_text: text });
+    setData((d) => ({ ...d, referencePoints: d.referencePoints.map((p) => (p.id === saved.id ? saved : p)) }));
+    return saved;
+  }, []);
+
+  const onDeletePoint = useCallback(async (id) => {
+    await deletePoint(id);
+    setData((d) => ({
+      ...d,
+      referencePoints: d.referencePoints.filter((p) => p.id !== id),
+      referencePointMedia: d.referencePointMedia.filter((m) => m.point_id !== id),
+    }));
+  }, []);
+
+  const onAddMedia = useCallback(async (pointId, file) => {
+    const saved = await addPointMedia(pointId, file);
+    setData((d) => ({ ...d, referencePointMedia: [...d.referencePointMedia, saved] }));
+    return saved;
+  }, []);
+
+  const onDeleteMedia = useCallback(async (id) => {
+    await deletePointMedia(id);
+    setData((d) => ({ ...d, referencePointMedia: d.referencePointMedia.filter((m) => m.id !== id) }));
   }, []);
 
   const changeTab = (tab) => {
@@ -73,20 +105,31 @@ export default function App() {
         {toast && <div className={toast.isError ? 'qcf-toast-err' : 'qcf-toast'}>{toast.text}</div>}
         {activeTab === 'new' && (
           <NewEntryForm
-            referenceLibrary={data.referenceLibrary}
+            referencePoints={data.referencePoints}
+            referencePointMedia={data.referencePointMedia}
             onUploadMedia={uploadEntryMedia}
             onSave={onSaveEntry}
             showToast={showToast}
           />
         )}
         {activeTab === 'history' && (
-          <HistoryTab entries={data.entries} referenceLibrary={data.referenceLibrary} onDelete={onDeleteEntry} showToast={showToast} />
+          <HistoryTab
+            entries={data.entries}
+            referencePoints={data.referencePoints}
+            referencePointMedia={data.referencePointMedia}
+            onDelete={onDeleteEntry}
+            showToast={showToast}
+          />
         )}
         {activeTab === 'reference' && (
           <ReferenceTab
-            referenceLibrary={data.referenceLibrary}
-            onUploadPhoto={uploadReferencePhoto}
-            onSave={onSaveReferenceItem}
+            referencePoints={data.referencePoints}
+            referencePointMedia={data.referencePointMedia}
+            onAddPoint={onAddPoint}
+            onUpdatePointText={onUpdatePointText}
+            onDeletePoint={onDeletePoint}
+            onAddMedia={onAddMedia}
+            onDeleteMedia={onDeleteMedia}
             showToast={showToast}
           />
         )}

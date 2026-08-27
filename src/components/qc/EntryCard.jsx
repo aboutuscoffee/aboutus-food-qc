@@ -1,3 +1,7 @@
+import { useState } from 'react';
+import { pointsForDish } from '../../lib/selectors';
+import ReferencePointsView from './ReferencePointsView';
+
 function fmtDate(iso) {
   if (!iso) return '';
   const [y, m, d] = iso.split('-');
@@ -10,14 +14,9 @@ function dispositionStyle(disposition) {
   return { background: 'var(--amber-soft)', color: 'var(--dark)' };
 }
 
-function refUsable(r) {
-  if (!r) return null;
-  if (!r.photo_url && !r.video_url && !r.points) return null;
-  return r;
-}
-
-export default function EntryCard({ entry: e, open, onToggle, reference, onDelete }) {
-  const ref = refUsable(reference);
+export default function EntryCard({ entry: e, open, onToggle, referencePoints, referencePointMedia, onDelete }) {
+  const [refOpen, setRefOpen] = useState(false);
+  const dishPoints = pointsForDish(referencePoints, e.dish_name);
 
   return (
     <div className="qcf-entry-card">
@@ -78,31 +77,17 @@ export default function EntryCard({ entry: e, open, onToggle, reference, onDelet
 
         {e.note && <div style={{ fontSize: 12, marginTop: 6 }}>総合メモ：{e.note}</div>}
 
-        {ref && (
+        {dishPoints.length > 0 && (
           <>
-            <p className="qcf-section-title" style={{ marginTop: 14 }}>
-              お手本と比較
-            </p>
-            <div className="qcf-compare-grid">
-              <div>
-                <p className="qcf-compare-col-label">お手本</p>
-                {ref.photo_url ? <img className="qcf-compare-img" src={ref.photo_url} /> : <div className="qcf-compare-empty">写真なし</div>}
-                {ref.video_url && (
-                  <a className="qcf-ref-video-link" href={ref.video_url} target="_blank" rel="noopener noreferrer">
-                    動画を見る ↗
-                  </a>
-                )}
-              </div>
-              <div>
-                <p className="qcf-compare-col-label">今回の記録</p>
-                {e.media_type === 'image' && e.media_url ? (
-                  <img className="qcf-compare-img" src={e.media_url} />
-                ) : (
-                  <div className="qcf-compare-empty">{e.media_name ? '動画あり' : '写真なし'}</div>
-                )}
-              </div>
+            <div className="qcf-ref-toggle" style={{ marginTop: 10 }} onClick={(ev) => { ev.stopPropagation(); setRefOpen((v) => !v); }}>
+              <span className="qcf-ref-toggle-label">お手本を見る（工程ごとのポイント）</span>
+              <span className="qcf-chevron">{refOpen ? '▲' : '▼'}</span>
             </div>
-            {ref.points && <p style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: 8 }}>お手本の要点：{ref.points}</p>}
+            {refOpen && (
+              <div style={{ border: '0.5px solid var(--line)', borderRadius: 8, padding: 10, marginBottom: 8, background: '#fff' }}>
+                <ReferencePointsView dishName={e.dish_name} points={referencePoints} media={referencePointMedia} isManager={false} />
+              </div>
+            )}
           </>
         )}
 

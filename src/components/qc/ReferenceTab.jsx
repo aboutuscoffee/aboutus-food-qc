@@ -2,18 +2,19 @@ import { useState } from 'react';
 import { CATEGORIES, MENUS, MANAGER_PIN } from '../../lib/constants';
 import ReferenceListItem from './ReferenceListItem';
 
-function refFor(referenceLibrary, dishName) {
-  const r = referenceLibrary.find((x) => x.dish_name === dishName);
-  if (!r) return null;
-  if (!r.photo_url && !r.video_url && !r.points) return null;
-  return r;
-}
-
-export default function ReferenceTab({ referenceLibrary, onUploadPhoto, onSave, showToast }) {
+export default function ReferenceTab({
+  referencePoints,
+  referencePointMedia,
+  onAddPoint,
+  onUpdatePointText,
+  onDeletePoint,
+  onAddMedia,
+  onDeleteMedia,
+  showToast,
+}) {
   const [isManager, setIsManager] = useState(false);
   const [pinInput, setPinInput] = useState('');
   const [openRefName, setOpenRefName] = useState(null);
-  const [editingRefName, setEditingRefName] = useState(null);
 
   const handlePinSubmit = () => {
     if (pinInput === MANAGER_PIN) {
@@ -25,24 +26,12 @@ export default function ReferenceTab({ referenceLibrary, onUploadPhoto, onSave, 
     }
   };
 
-  const handleToggle = (name) => {
-    setOpenRefName((cur) => (cur === name ? null : name));
-    setEditingRefName(null);
-  };
-
-  const handleEdit = (name) => {
-    setEditingRefName(name);
-    setOpenRefName(name);
-  };
-
-  const handleSave = async (name, fields) => {
+  const wrap = (fn, okMsg) => async (...args) => {
     try {
-      await onSave(name, fields);
-      showToast('お手本を保存しました。', false);
-      setEditingRefName(null);
-      setOpenRefName(name);
+      await fn(...args);
+      if (okMsg) showToast(okMsg, false);
     } catch (e) {
-      showToast('保存に失敗しました：' + e.message, true);
+      showToast('操作に失敗しました：' + e.message, true);
     }
   };
 
@@ -51,7 +40,7 @@ export default function ReferenceTab({ referenceLibrary, onUploadPhoto, onSave, 
       {isManager ? (
         <div className="qcf-manager-row">
           <span className="qcf-manager-badge">管理者モード有効</span>
-          <button type="button" className="qcf-manager-btn" onClick={() => { setIsManager(false); setEditingRefName(null); }}>
+          <button type="button" className="qcf-manager-btn" onClick={() => setIsManager(false)}>
             終了
           </button>
         </div>
@@ -71,16 +60,16 @@ export default function ReferenceTab({ referenceLibrary, onUploadPhoto, onSave, 
             <ReferenceListItem
               key={name}
               name={name}
-              reference={refFor(referenceLibrary, name)}
-              rawReference={referenceLibrary.find((r) => r.dish_name === name) ?? null}
+              points={referencePoints}
+              media={referencePointMedia}
               open={openRefName === name}
-              editing={editingRefName === name}
               isManager={isManager}
-              onToggle={() => handleToggle(name)}
-              onEdit={() => handleEdit(name)}
-              onCancelEdit={() => setEditingRefName(null)}
-              onUploadPhoto={onUploadPhoto}
-              onSave={(fields) => handleSave(name, fields)}
+              onToggle={() => setOpenRefName((cur) => (cur === name ? null : name))}
+              onAddPoint={wrap(onAddPoint)}
+              onUpdatePointText={wrap(onUpdatePointText)}
+              onDeletePoint={wrap(onDeletePoint)}
+              onAddMedia={wrap(onAddMedia)}
+              onDeleteMedia={wrap(onDeleteMedia)}
             />
           ))}
         </div>

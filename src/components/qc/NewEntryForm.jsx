@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { STORES, CATEGORIES, MENUS } from '../../lib/constants';
+import { pointsForDish } from '../../lib/selectors';
+import ReferencePointsView from './ReferencePointsView';
 
 function today() {
   return new Date().toISOString().slice(0, 10);
@@ -21,14 +23,7 @@ function emptyDraft() {
   };
 }
 
-function refFor(referenceLibrary, dishName) {
-  const r = referenceLibrary.find((x) => x.dish_name === dishName);
-  if (!r) return null;
-  if (!r.photo_url && !r.video_url && !r.points) return null;
-  return r;
-}
-
-export default function NewEntryForm({ referenceLibrary, onUploadMedia, onSave, showToast }) {
+export default function NewEntryForm({ referencePoints, referencePointMedia, onUploadMedia, onSave, showToast }) {
   const [draft, setDraft] = useState(emptyDraft());
   const [media, setMedia] = useState(null); // { file, previewUrl, type }
   const [refPanelOpen, setRefPanelOpen] = useState(false);
@@ -37,7 +32,7 @@ export default function NewEntryForm({ referenceLibrary, onUploadMedia, onSave, 
   const set = (field, value) => setDraft((d) => ({ ...d, [field]: value }));
 
   const menuOpts = MENUS[draft.category] || [];
-  const ref = refFor(referenceLibrary, draft.dishName);
+  const dishPoints = pointsForDish(referencePoints, draft.dishName);
 
   const handleMediaChange = (e) => {
     const file = e.target.files?.[0];
@@ -163,27 +158,15 @@ export default function NewEntryForm({ referenceLibrary, onUploadMedia, onSave, 
         <textarea rows={2} placeholder="確認者からのコメント・指示など" value={draft.checkerComment} onChange={(e) => set('checkerComment', e.target.value)} />
       </div>
 
-      {ref && (
+      {dishPoints.length > 0 && (
         <>
           <div className="qcf-ref-toggle" onClick={() => setRefPanelOpen((v) => !v)}>
-            <span className="qcf-ref-toggle-label">お手本を見る（写真・動画）</span>
+            <span className="qcf-ref-toggle-label">お手本を見る（工程ごとのポイント）</span>
             <span className="qcf-chevron">{refPanelOpen ? '▲' : '▼'}</span>
           </div>
           {refPanelOpen && (
-            <div className="qcf-ref-panel">
-              {ref.photo_url ? <img className="qcf-ref-thumb" src={ref.photo_url} /> : <div className="qcf-ref-thumb">写真なし</div>}
-              <div>
-                {ref.points ? (
-                  <p style={{ fontSize: 12, margin: '0 0 4px' }}>{ref.points}</p>
-                ) : (
-                  <p style={{ fontSize: 12, color: 'var(--ink-soft)', margin: '0 0 4px' }}>要点メモ未登録</p>
-                )}
-                {ref.video_url && (
-                  <a className="qcf-ref-video-link" href={ref.video_url} target="_blank" rel="noopener noreferrer">
-                    動画を見る ↗
-                  </a>
-                )}
-              </div>
+            <div style={{ border: '0.5px solid var(--line)', borderRadius: 8, padding: 10, marginBottom: 12, background: '#fff' }}>
+              <ReferencePointsView dishName={draft.dishName} points={referencePoints} media={referencePointMedia} isManager={false} />
             </div>
           )}
         </>
