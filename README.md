@@ -9,7 +9,7 @@ aboutus-staff-todo / aboutus-beans-profile とは独立したアプリ。Supabas
 ## セットアップ（初回のみ・手動）
 
 1. **Supabaseにテーブルを作成**
-   Supabase SQL Editorで [`scripts/migration_v2_incident_log.sql`](scripts/migration_v2_incident_log.sql) の内容を実行する（旧テーブルの削除＋新テーブルqc_entries/qc_reference_libraryの作成）。
+   Supabase SQL Editorで [`scripts/migration_v2_incident_log.sql`](scripts/migration_v2_incident_log.sql)（qc_entries作成）→ [`scripts/migration_v3_reference_points.sql`](scripts/migration_v3_reference_points.sql)（お手本を工程別ポイント方式に変更）の順に実行する。
 
 2. **ローカル動作確認**
    ```bash
@@ -24,12 +24,13 @@ aboutus-staff-todo / aboutus-beans-profile とは独立したアプリ。Supabas
 ## 使い方
 
 - **新規記録**：カテゴリ→メニュー→店舗を選び、必須項目（記録作成日・問題発生日・作った人・提供/廃棄・推測要因）と任意項目（確認者名・コメント・写真or動画・総合メモ）を入力して保存
-- **履歴**：店舗・カテゴリ・メニュー・日付で絞り込み、記録をタップして詳細（お手本との比較含む）を確認・削除
-- **お手本**：メニューごとのお手本写真・動画リンク・要点メモを閲覧。編集は管理者PIN（`.env`の`VITE_MANAGER_PIN`）でロック
+- **履歴**：店舗・カテゴリ・メニュー・日付で絞り込み、記録をタップして詳細（お手本ポイントの参照含む）を確認・削除
+- **お手本**：メニューごとに工程別のポイント（文章）を並べ、写真/動画が添付されたポイントはクリックでその場に展開して確認できる。編集（工程追加・ポイント追加/編集/削除・メディア追加/削除）は管理者PIN（`.env`の`VITE_MANAGER_PIN`）でロック
 
 ## データ構造
 
-- `qc_entries` — QCログ1件（店舗・カテゴリ・メニュー名・日付・問題発生日・作った人・確認者・提供/廃棄・推測要因・写真or動画・総合メモ）
-- `qc_reference_library` — メニューごとのお手本（写真・動画リンク・要点メモ）。`dish_name`がユニークキー
+- `qc_entries` — QCログ1件（店舗・カテゴリ・メニュー名・日付・問題発生日・作った人・確認者・提供/廃棄/保管中・推測要因・写真or動画・総合メモ）
+- `qc_reference_points` — メニュー×工程ごとのポイント（文章）。`dish_name` + `process_name`でグルーピング
+- `qc_reference_point_media` — 各ポイントに添付する写真/動画（1ポイントに複数件可）。`point_id`で紐付け
 
-画像・動画は既存のSupabase Storageバケット`qc-photos`に保存（`entries/`と`reference/`のフォルダに分離）。
+画像・動画は既存のSupabase Storageバケット`qc-photos`に保存（`entries/`・`reference-points/`のフォルダに分離）。
