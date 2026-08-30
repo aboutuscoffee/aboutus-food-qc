@@ -3,6 +3,7 @@ import { pointsForDish } from '../../lib/selectors';
 
 export default function ReferenceListItem({
   name,
+  purpose,
   points,
   media,
   open,
@@ -15,7 +16,7 @@ export default function ReferenceListItem({
   onDeleteMedia,
   onAddLink,
 }) {
-  const dishPoints = pointsForDish(points, name);
+  const dishPoints = pointsForDish(points, name, purpose);
   const hasContent = dishPoints.length > 0;
 
   return (
@@ -33,6 +34,7 @@ export default function ReferenceListItem({
         <div className="qcf-ref-detail open">
           <ReferencePointsView
             dishName={name}
+            purpose={purpose}
             points={points}
             media={media}
             isManager={isManager}

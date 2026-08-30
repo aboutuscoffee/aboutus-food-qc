@@ -121,6 +121,7 @@ function PointMediaEditor({ point, media, onAddMedia, onDeleteMedia, onAddLink }
 
 export default function ReferencePointsView({
   dishName,
+  purpose,
   points,
   media,
   isManager,
@@ -138,7 +139,7 @@ export default function ReferencePointsView({
   const [newProcessName, setNewProcessName] = useState('');
   const [newProcessPointText, setNewProcessPointText] = useState('');
 
-  const dishPoints = pointsForDish(points, dishName);
+  const dishPoints = pointsForDish(points, dishName, purpose);
   const groups = groupByProcess(dishPoints);
 
   const startEdit = (point) => {
@@ -155,13 +156,13 @@ export default function ReferencePointsView({
   const addPointToProcess = async (processName) => {
     const text = (newPointDraft[processName] || '').trim();
     if (!text) return;
-    await onAddPoint({ dish_name: dishName, process_name: processName, point_text: text, sort_order: 999 });
+    await onAddPoint({ dish_name: dishName, purpose, process_name: processName, point_text: text, sort_order: 999 });
     setNewPointDraft((d) => ({ ...d, [processName]: '' }));
   };
 
   const addProcess = async () => {
     if (!newProcessName.trim() || !newProcessPointText.trim()) return;
-    await onAddPoint({ dish_name: dishName, process_name: newProcessName.trim(), point_text: newProcessPointText.trim(), sort_order: 999 });
+    await onAddPoint({ dish_name: dishName, purpose, process_name: newProcessName.trim(), point_text: newProcessPointText.trim(), sort_order: 999 });
     setNewProcessName('');
     setNewProcessPointText('');
   };

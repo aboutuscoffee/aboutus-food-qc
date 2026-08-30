@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { pointsForDish } from '../../lib/selectors';
+import { purposeForCategory } from '../../lib/constants';
 import ReferencePointsView from './ReferencePointsView';
 
 function fmtDate(iso) {
@@ -16,7 +17,8 @@ function dispositionStyle(disposition) {
 
 export default function EntryCard({ entry: e, open, onToggle, referencePoints, referencePointMedia, onDelete }) {
   const [refOpen, setRefOpen] = useState(false);
-  const dishPoints = pointsForDish(referencePoints, e.dish_name);
+  const refPurpose = purposeForCategory(e.category);
+  const dishPoints = pointsForDish(referencePoints, e.dish_name, refPurpose);
 
   return (
     <div className="qcf-entry-card">
@@ -85,7 +87,7 @@ export default function EntryCard({ entry: e, open, onToggle, referencePoints, r
             </div>
             {refOpen && (
               <div style={{ border: '0.5px solid var(--line)', borderRadius: 8, padding: 10, marginBottom: 8, background: '#fff' }}>
-                <ReferencePointsView dishName={e.dish_name} points={referencePoints} media={referencePointMedia} isManager={false} />
+                <ReferencePointsView dishName={e.dish_name} purpose={refPurpose} points={referencePoints} media={referencePointMedia} isManager={false} />
               </div>
             )}
           </>

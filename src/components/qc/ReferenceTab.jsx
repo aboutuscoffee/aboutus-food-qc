@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CATEGORIES, MENUS, MANAGER_PIN } from '../../lib/constants';
+import { REFERENCE_GROUPS, MANAGER_PIN } from '../../lib/constants';
 import ReferenceListItem from './ReferenceListItem';
 
 export default function ReferenceTab({
@@ -15,7 +15,7 @@ export default function ReferenceTab({
 }) {
   const [isManager, setIsManager] = useState(false);
   const [pinInput, setPinInput] = useState('');
-  const [openRefName, setOpenRefName] = useState(null);
+  const [openRefKey, setOpenRefKey] = useState(null);
 
   const handlePinSubmit = () => {
     if (pinInput === MANAGER_PIN) {
@@ -36,6 +36,29 @@ export default function ReferenceTab({
     }
   };
 
+  const dishList = (dishes, purpose) =>
+    dishes.map((name) => {
+      const key = purpose + ':' + name;
+      return (
+        <ReferenceListItem
+          key={key}
+          name={name}
+          purpose={purpose}
+          points={referencePoints}
+          media={referencePointMedia}
+          open={openRefKey === key}
+          isManager={isManager}
+          onToggle={() => setOpenRefKey((cur) => (cur === key ? null : key))}
+          onAddPoint={wrap(onAddPoint)}
+          onUpdatePointText={wrap(onUpdatePointText)}
+          onDeletePoint={wrap(onDeletePoint)}
+          onAddMedia={wrap(onAddMedia)}
+          onDeleteMedia={wrap(onDeleteMedia)}
+          onAddLink={wrap(onAddLink)}
+        />
+      );
+    });
+
   return (
     <>
       {isManager ? (
@@ -54,26 +77,17 @@ export default function ReferenceTab({
         </div>
       )}
 
-      {CATEGORIES.map((cat) => (
-        <div key={cat}>
-          <p className="qcf-section-title">{cat}</p>
-          {(MENUS[cat] || []).map((name) => (
-            <ReferenceListItem
-              key={name}
-              name={name}
-              points={referencePoints}
-              media={referencePointMedia}
-              open={openRefName === name}
-              isManager={isManager}
-              onToggle={() => setOpenRefName((cur) => (cur === name ? null : name))}
-              onAddPoint={wrap(onAddPoint)}
-              onUpdatePointText={wrap(onUpdatePointText)}
-              onDeletePoint={wrap(onDeletePoint)}
-              onAddMedia={wrap(onAddMedia)}
-              onDeleteMedia={wrap(onDeleteMedia)}
-              onAddLink={wrap(onAddLink)}
-            />
-          ))}
+      {REFERENCE_GROUPS.map((group) => (
+        <div key={group.key}>
+          <p className="qcf-section-title">{group.label}</p>
+          {group.dishes && dishList(group.dishes, group.purpose)}
+          {group.subgroups &&
+            group.subgroups.map((sub) => (
+              <div key={sub.key} style={{ marginBottom: 8 }}>
+                <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--ink-soft)', margin: '0 0 6px' }}>{sub.label}</p>
+                {dishList(sub.dishes, group.purpose)}
+              </div>
+            ))}
         </div>
       ))}
     </>

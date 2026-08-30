@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { STORES, CATEGORIES, MENUS } from '../../lib/constants';
+import { STORES, CATEGORIES, MENUS, purposeForCategory } from '../../lib/constants';
 import { pointsForDish } from '../../lib/selectors';
 import ReferencePointsView from './ReferencePointsView';
 
@@ -32,7 +32,8 @@ export default function NewEntryForm({ referencePoints, referencePointMedia, onU
   const set = (field, value) => setDraft((d) => ({ ...d, [field]: value }));
 
   const menuOpts = MENUS[draft.category] || [];
-  const dishPoints = pointsForDish(referencePoints, draft.dishName);
+  const refPurpose = purposeForCategory(draft.category);
+  const dishPoints = pointsForDish(referencePoints, draft.dishName, refPurpose);
 
   const handleMediaChange = (e) => {
     const file = e.target.files?.[0];
@@ -166,7 +167,7 @@ export default function NewEntryForm({ referencePoints, referencePointMedia, onU
           </div>
           {refPanelOpen && (
             <div style={{ border: '0.5px solid var(--line)', borderRadius: 8, padding: 10, marginBottom: 12, background: '#fff' }}>
-              <ReferencePointsView dishName={draft.dishName} points={referencePoints} media={referencePointMedia} isManager={false} />
+              <ReferencePointsView dishName={draft.dishName} purpose={refPurpose} points={referencePoints} media={referencePointMedia} isManager={false} />
             </div>
           )}
         </>

@@ -1,6 +1,6 @@
-export function pointsForDish(points, dishName) {
+export function pointsForDish(points, dishName, purpose) {
   return points
-    .filter((p) => p.dish_name === dishName)
+    .filter((p) => p.dish_name === dishName && (purpose == null || p.purpose === purpose))
     .slice()
     .sort((a, b) => a.sort_order - b.sort_order);
 }
