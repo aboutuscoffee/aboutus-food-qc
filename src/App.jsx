@@ -8,6 +8,7 @@ import {
   deletePoint,
   addPointMedia,
   deletePointMedia,
+  addPointLink,
 } from './lib/db';
 import NewEntryForm from './components/qc/NewEntryForm';
 import HistoryTab from './components/qc/HistoryTab';
@@ -72,6 +73,12 @@ export default function App() {
     setData((d) => ({ ...d, referencePointMedia: d.referencePointMedia.filter((m) => m.id !== id) }));
   }, []);
 
+  const onAddLink = useCallback(async (pointId, url) => {
+    const saved = await addPointLink(pointId, url);
+    setData((d) => ({ ...d, referencePointMedia: [...d.referencePointMedia, saved] }));
+    return saved;
+  }, []);
+
   const changeTab = (tab) => {
     setActiveTab(tab);
     setToast(null);
@@ -130,6 +137,7 @@ export default function App() {
             onDeletePoint={onDeletePoint}
             onAddMedia={onAddMedia}
             onDeleteMedia={onDeleteMedia}
+            onAddLink={onAddLink}
             showToast={showToast}
           />
         )}

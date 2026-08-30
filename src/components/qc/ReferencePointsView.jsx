@@ -1,10 +1,11 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { pointsForDish, groupByProcess, mediaForPoint } from '../../lib/selectors';
 import PointMediaLightbox from './PointMediaLightbox';
 
-function PointMediaEditor({ point, media, onAddMedia, onDeleteMedia }) {
-  const inputRef = useRef(null);
+function PointMediaEditor({ point, media, onAddMedia, onDeleteMedia, onAddLink }) {
   const [uploading, setUploading] = useState(false);
+  const [linkInput, setLinkInput] = useState('');
+  const [linkOpen, setLinkOpen] = useState(false);
 
   const handleFile = (e) => {
     const file = e.target.files?.[0];
@@ -14,14 +15,52 @@ function PointMediaEditor({ point, media, onAddMedia, onDeleteMedia }) {
     Promise.resolve(onAddMedia(point.id, file)).finally(() => setUploading(false));
   };
 
+  const submitLink = async () => {
+    const url = linkInput.trim();
+    if (!url) return;
+    await onAddLink(point.id, url);
+    setLinkInput('');
+    setLinkOpen(false);
+  };
+
   return (
     <div style={{ marginTop: 6, marginLeft: 24 }}>
       {media.length > 0 && (
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 6 }}>
           {media.map((m) => (
-            <div key={m.id} style={{ position: 'relative', width: 56, height: 56, borderRadius: 6, overflow: 'hidden', border: '0.5px solid var(--line)' }}>
+            <div
+              key={m.id}
+              style={{
+                position: 'relative',
+                width: 56,
+                height: 56,
+                borderRadius: 6,
+                overflow: 'hidden',
+                border: '0.5px solid var(--line)',
+                background: m.media_type === 'link' ? 'var(--page)' : undefined,
+              }}
+            >
               {m.media_type === 'video' ? (
                 <video src={m.media_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : m.media_type === 'link' ? (
+                <a
+                  href={m.media_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={m.media_url}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '100%',
+                    height: '100%',
+                    fontSize: 18,
+                    color: 'var(--blue)',
+                    textDecoration: 'none',
+                  }}
+                >
+                  🔗
+                </a>
               ) : (
                 <img src={m.media_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               )}
@@ -49,17 +88,33 @@ function PointMediaEditor({ point, media, onAddMedia, onDeleteMedia }) {
           ))}
         </div>
       )}
-      <label htmlFor={`qcf-point-media-${point.id}`} style={{ fontSize: 11, color: 'var(--blue)', cursor: 'pointer' }}>
-        {uploading ? 'アップロード中…' : '＋ 写真/動画を追加'}
-      </label>
-      <input
-        ref={inputRef}
-        id={`qcf-point-media-${point.id}`}
-        type="file"
-        accept="image/*,video/*"
-        style={{ display: 'none' }}
-        onChange={handleFile}
-      />
+      <div style={{ display: 'flex', gap: 12 }}>
+        <label htmlFor={`qcf-point-media-${point.id}`} style={{ fontSize: 11, color: 'var(--blue)', cursor: 'pointer' }}>
+          {uploading ? 'アップロード中…' : '＋ 写真/動画を追加'}
+        </label>
+        <button
+          type="button"
+          onClick={() => setLinkOpen((v) => !v)}
+          style={{ fontSize: 11, color: 'var(--blue)', background: 'none', border: 'none', padding: 0 }}
+        >
+          ＋ リンクを追加
+        </button>
+      </div>
+      <input id={`qcf-point-media-${point.id}`} type="file" accept="image/*,video/*" style={{ display: 'none' }} onChange={handleFile} />
+      {linkOpen && (
+        <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+          <input
+            type="text"
+            placeholder="https://..."
+            value={linkInput}
+            onChange={(e) => setLinkInput(e.target.value)}
+            style={{ flex: 1, fontSize: 12, padding: '4px 6px', border: '0.5px solid var(--line)', borderRadius: 6 }}
+          />
+          <button type="button" onClick={submitLink} style={{ fontSize: 11 }}>
+            追加
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -74,6 +129,7 @@ export default function ReferencePointsView({
   onDeletePoint,
   onAddMedia,
   onDeleteMedia,
+  onAddLink,
 }) {
   const [openPointId, setOpenPointId] = useState(null);
   const [editingPointId, setEditingPointId] = useState(null);
@@ -172,7 +228,7 @@ export default function ReferencePointsView({
                   <PointMediaLightbox pointText={pt.point_text} media={ptMedia} onClose={() => setOpenPointId(null)} />
                 )}
                 {isManager && !editing && (
-                  <PointMediaEditor point={pt} media={ptMedia} onAddMedia={onAddMedia} onDeleteMedia={onDeleteMedia} />
+                  <PointMediaEditor point={pt} media={ptMedia} onAddMedia={onAddMedia} onDeleteMedia={onDeleteMedia} onAddLink={onAddLink} />
                 )}
               </div>
             );

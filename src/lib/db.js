@@ -101,3 +101,13 @@ export async function deletePointMedia(id) {
   const { error } = await supabase.from('qc_reference_point_media').delete().eq('id', id);
   if (error) throw new Error(error.message);
 }
+
+export async function addPointLink(pointId, url) {
+  const { data, error } = await supabase
+    .from('qc_reference_point_media')
+    .insert({ point_id: pointId, media_type: 'link', media_url: url, media_name: url })
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return data;
+}

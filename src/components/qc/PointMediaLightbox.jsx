@@ -27,6 +27,34 @@ export default function PointMediaLightbox({ pointText, media, onClose }) {
           {media.map((m) =>
             m.media_type === 'video' ? (
               <video key={m.id} src={m.media_url} controls style={{ height: 160, borderRadius: 6, flexShrink: 0 }} />
+            ) : m.media_type === 'link' ? (
+              <a
+                key={m.id}
+                href={m.media_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  height: 160,
+                  minWidth: 140,
+                  borderRadius: 6,
+                  flexShrink: 0,
+                  background: 'var(--page)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  color: 'var(--blue)',
+                  textDecoration: 'none',
+                  fontSize: 12,
+                  padding: 10,
+                  textAlign: 'center',
+                  wordBreak: 'break-all',
+                }}
+              >
+                <span style={{ fontSize: 24 }}>🔗</span>
+                リンクを開く ↗
+              </a>
             ) : (
               <img key={m.id} src={m.media_url} alt={m.media_name ?? ''} style={{ height: 160, borderRadius: 6, flexShrink: 0 }} />
             )

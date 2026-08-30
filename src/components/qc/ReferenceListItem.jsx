@@ -13,6 +13,7 @@ export default function ReferenceListItem({
   onDeletePoint,
   onAddMedia,
   onDeleteMedia,
+  onAddLink,
 }) {
   const dishPoints = pointsForDish(points, name);
   const hasContent = dishPoints.length > 0;
@@ -40,6 +41,7 @@ export default function ReferenceListItem({
             onDeletePoint={onDeletePoint}
             onAddMedia={onAddMedia}
             onDeleteMedia={onDeleteMedia}
+            onAddLink={onAddLink}
           />
         </div>
       )}

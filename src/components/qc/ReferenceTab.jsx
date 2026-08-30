@@ -10,6 +10,7 @@ export default function ReferenceTab({
   onDeletePoint,
   onAddMedia,
   onDeleteMedia,
+  onAddLink,
   showToast,
 }) {
   const [isManager, setIsManager] = useState(false);
@@ -70,6 +71,7 @@ export default function ReferenceTab({
               onDeletePoint={wrap(onDeletePoint)}
               onAddMedia={wrap(onAddMedia)}
               onDeleteMedia={wrap(onDeleteMedia)}
+              onAddLink={wrap(onAddLink)}
             />
           ))}
         </div>

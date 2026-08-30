@@ -9,7 +9,7 @@ function fmtDate(iso) {
 }
 
 function dispositionStyle(disposition) {
-  if (disposition === '提供') return { background: 'var(--good-soft)', color: '#33452C' };
+  if (disposition === '提供') return { background: 'var(--good-soft)', color: '#333333' };
   if (disposition === '廃棄') return { background: 'var(--warn-soft)', color: 'var(--warn)' };
   return { background: 'var(--amber-soft)', color: 'var(--dark)' };
 }
