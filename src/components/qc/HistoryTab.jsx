@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { STORES, CATEGORIES, MENUS } from '../../lib/constants';
 import EntryCard from './EntryCard';
 
-export default function HistoryTab({ entries, referencePoints, referencePointMedia, onDelete, showToast }) {
+export default function HistoryTab({ entries, referencePoints, referencePointMedia, onDelete, onUpdateCheckerComment, showToast }) {
   const [filterStore, setFilterStore] = useState('all');
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterMenu, setFilterMenu] = useState('all');
@@ -25,6 +25,15 @@ export default function HistoryTab({ entries, referencePoints, referencePointMed
       showToast('記録を削除しました。', false);
     } catch (e) {
       showToast('削除に失敗しました：' + e.message, true);
+    }
+  };
+
+  const handleUpdateCheckerComment = async (id, text) => {
+    try {
+      await onUpdateCheckerComment(id, text);
+      showToast('確認者コメントを更新しました。', false);
+    } catch (e) {
+      showToast('更新に失敗しました：' + e.message, true);
     }
   };
 
@@ -75,6 +84,7 @@ export default function HistoryTab({ entries, referencePoints, referencePointMed
             referencePoints={referencePoints}
             referencePointMedia={referencePointMedia}
             onDelete={() => handleDelete(e.id)}
+            onUpdateCheckerComment={(text) => handleUpdateCheckerComment(e.id, text)}
           />
         ))
       )}

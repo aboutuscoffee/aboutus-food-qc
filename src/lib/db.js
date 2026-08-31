@@ -69,6 +69,17 @@ export async function deleteEntry(id) {
   if (error) throw new Error(error.message);
 }
 
+export async function updateCheckerComment(id, checkerComment) {
+  const { data, error } = await supabase
+    .from('qc_entries')
+    .update({ checker_comment: checkerComment })
+    .eq('id', id)
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return data;
+}
+
 export async function savePoint(fields) {
   const { id, ...rest } = fields;
   if (id != null) {

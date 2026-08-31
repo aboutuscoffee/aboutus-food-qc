@@ -15,10 +15,30 @@ function dispositionStyle(disposition) {
   return { background: 'var(--amber-soft)', color: 'var(--dark)' };
 }
 
-export default function EntryCard({ entry: e, open, onToggle, referencePoints, referencePointMedia, onDelete }) {
+export default function EntryCard({ entry: e, open, onToggle, referencePoints, referencePointMedia, onDelete, onUpdateCheckerComment }) {
   const [refOpen, setRefOpen] = useState(false);
+  const [editingComment, setEditingComment] = useState(false);
+  const [commentDraft, setCommentDraft] = useState(e.checker_comment || '');
+  const [savingComment, setSavingComment] = useState(false);
   const refPurpose = purposeForCategory(e.category);
   const dishPoints = pointsForDish(referencePoints, e.dish_name, refPurpose);
+
+  const startEditComment = (ev) => {
+    ev.stopPropagation();
+    setCommentDraft(e.checker_comment || '');
+    setEditingComment(true);
+  };
+
+  const saveComment = async (ev) => {
+    ev.stopPropagation();
+    setSavingComment(true);
+    try {
+      await onUpdateCheckerComment(commentDraft.trim());
+      setEditingComment(false);
+    } finally {
+      setSavingComment(false);
+    }
+  };
 
   return (
     <div className="qcf-entry-card">
@@ -71,9 +91,33 @@ export default function EntryCard({ entry: e, open, onToggle, referencePoints, r
           <b style={{ color: 'var(--ink)' }}>{e.maker || '—'}</b>　確認者：<b style={{ color: 'var(--ink)' }}>{e.checker || '—'}</b>
         </div>
 
-        {e.checker_comment && (
+        {editingComment ? (
+          <div style={{ background: 'var(--amber-soft)', borderRadius: 8, padding: '8px 10px', marginBottom: 8 }} onClick={(ev) => ev.stopPropagation()}>
+            <textarea
+              rows={2}
+              value={commentDraft}
+              onChange={(ev) => setCommentDraft(ev.target.value)}
+              style={{ fontSize: 12, marginBottom: 6 }}
+            />
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button type="button" onClick={saveComment} disabled={savingComment} style={{ fontSize: 11 }}>
+                {savingComment ? '保存中…' : '保存'}
+              </button>
+              <button type="button" onClick={(ev) => { ev.stopPropagation(); setEditingComment(false); }} style={{ fontSize: 11 }}>
+                キャンセル
+              </button>
+            </div>
+          </div>
+        ) : (
           <div style={{ fontSize: 12, background: 'var(--amber-soft)', borderRadius: 8, padding: '8px 10px', marginBottom: 8 }}>
-            確認者コメント：{e.checker_comment}
+            確認者コメント：{e.checker_comment || '—'}
+            <button
+              type="button"
+              onClick={startEditComment}
+              style={{ fontSize: 11, marginLeft: 8, color: 'var(--blue)', background: 'none', border: 'none', padding: 0 }}
+            >
+              編集
+            </button>
           </div>
         )}
 

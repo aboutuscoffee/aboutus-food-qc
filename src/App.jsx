@@ -9,6 +9,7 @@ import {
   addPointMedia,
   deletePointMedia,
   addPointLink,
+  updateCheckerComment,
 } from './lib/db';
 import NewEntryForm from './components/qc/NewEntryForm';
 import HistoryTab from './components/qc/HistoryTab';
@@ -39,6 +40,12 @@ export default function App() {
   const onDeleteEntry = useCallback(async (id) => {
     await deleteEntry(id);
     setData((d) => ({ ...d, entries: d.entries.filter((e) => e.id !== id) }));
+  }, []);
+
+  const onUpdateCheckerComment = useCallback(async (id, text) => {
+    const saved = await updateCheckerComment(id, text);
+    setData((d) => ({ ...d, entries: d.entries.map((e) => (e.id === saved.id ? saved : e)) }));
+    return saved;
   }, []);
 
   const onAddPoint = useCallback(async (fields) => {
@@ -125,6 +132,7 @@ export default function App() {
             referencePoints={data.referencePoints}
             referencePointMedia={data.referencePointMedia}
             onDelete={onDeleteEntry}
+            onUpdateCheckerComment={onUpdateCheckerComment}
             showToast={showToast}
           />
         )}
