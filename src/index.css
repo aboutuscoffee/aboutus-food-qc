@@ -73,6 +73,7 @@ body {
 .qcf-cause-block { background: var(--warn-soft); border-radius: 8px; padding: 8px 10px; margin-bottom: 6px; font-size: 12px; }
 .qcf-toggle-group { display: flex; gap: 8px; margin-top: 2px; }
 .qcf-toggle-opt { flex: 1; padding: 9px 8px; border: 1px solid var(--line); border-radius: 6px; font-size: 13px; cursor: pointer; background: #fff; color: var(--ink); }
+.qcf-toggle-opt.active-store { background: var(--dark); color: #fff; border-color: var(--dark); font-weight: 500; }
 .qcf-toggle-opt.active-提供 { background: var(--good); color: #fff; border-color: var(--good); font-weight: 500; }
 .qcf-toggle-opt.active-廃棄 { background: var(--warn); color: #fff; border-color: var(--warn); font-weight: 500; }
 .qcf-toggle-opt.active-保管中 { background: var(--amber); color: #fff; border-color: var(--amber); font-weight: 500; }

@@ -11,6 +11,12 @@ export default function HistoryTab({ entries, referencePoints, referencePointMed
 
   const allMenus = useMemo(() => [...new Set(Object.values(MENUS).flat())].sort(), []);
 
+  const withoutStore = entries
+    .filter((e) => filterCategory === 'all' || e.category === filterCategory)
+    .filter((e) => filterMenu === 'all' || e.dish_name === filterMenu)
+    .filter((e) => !filterDate || e.date === filterDate);
+  const countFor = (store) => withoutStore.filter((e) => store === 'all' || e.store === store).length;
+
   const filtered = entries
     .filter((e) => filterStore === 'all' || e.store === filterStore)
     .filter((e) => filterCategory === 'all' || e.category === filterCategory)
@@ -39,15 +45,20 @@ export default function HistoryTab({ entries, referencePoints, referencePointMed
 
   return (
     <>
+      <div className="qcf-toggle-group" style={{ marginBottom: 10 }} role="group" aria-label="店舗で絞り込み">
+        {['all', ...STORES].map((st) => (
+          <button
+            key={st}
+            type="button"
+            className={'qcf-toggle-opt' + (filterStore === st ? ' active-store' : '')}
+            aria-pressed={filterStore === st}
+            onClick={() => setFilterStore(st)}
+          >
+            {st === 'all' ? '両店' : st}（{countFor(st)}）
+          </button>
+        ))}
+      </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 14 }}>
-        <select style={{ fontSize: 12, padding: '6px 8px' }} value={filterStore} onChange={(e) => setFilterStore(e.target.value)}>
-          <option value="all">すべての店舗</option>
-          {STORES.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
         <select style={{ fontSize: 12, padding: '6px 8px' }} value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}>
           <option value="all">すべてのカテゴリ</option>
           {CATEGORIES.map((c) => (

@@ -8,10 +8,21 @@ function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
-function emptyDraft() {
+const LAST_STORE_KEY = 'qcf-last-store';
+
+function lastStore() {
+  try {
+    const v = localStorage.getItem(LAST_STORE_KEY);
+    return STORES.includes(v) ? v : '';
+  } catch {
+    return '';
+  }
+}
+
+function emptyDraft(store = lastStore()) {
   return {
     date: today(),
-    store: STORES[0],
+    store,
     category: '',
     dishName: '',
     checker: '',
@@ -60,7 +71,7 @@ export default function NewEntryForm({ referencePoints, referencePointMedia, onU
   const handleSave = async () => {
     const missing = [];
     if (!draft.category) missing.push('カテゴリ');
-    if (!draft.store) missing.push('店舗');
+    if (!draft.store) missing.push('店舗（伏見／二条）');
     if (!draft.dishName) missing.push('メニュー名');
     if (!draft.date) missing.push('記録作成日');
     if (!draft.foundDate) missing.push('問題発生日');
@@ -110,6 +121,32 @@ export default function NewEntryForm({ referencePoints, referencePointMedia, onU
         メニュー選択<span className="qcf-req-mark">※カテゴリを選ぶとメニューが表示されます</span>
       </p>
 
+      <div className="qcf-field" style={{ marginBottom: 10 }}>
+        <label>
+          店舗<span className="qcf-req-mark">*</span>
+        </label>
+        <div className="qcf-toggle-group">
+          {STORES.map((st) => (
+            <button
+              key={st}
+              type="button"
+              className={'qcf-toggle-opt' + (draft.store === st ? ' active-store' : '')}
+              aria-pressed={draft.store === st}
+              onClick={() => {
+                set('store', st);
+                try {
+                  localStorage.setItem(LAST_STORE_KEY, st);
+                } catch {
+                  /* 保存できなくても入力は続行できる */
+                }
+              }}
+            >
+              {st}
+            </button>
+          ))}
+        </div>
+      </div>
+
       <div className="qcf-req-grid" style={{ marginBottom: 10 }}>
         <div className="qcf-field">
           <label>
@@ -147,18 +184,6 @@ export default function NewEntryForm({ referencePoints, referencePointMedia, onU
             {menuOpts.map((m) => (
               <option key={m} value={m}>
                 {m}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="qcf-field">
-          <label>
-            店舗<span className="qcf-req-mark">*</span>
-          </label>
-          <select value={draft.store} onChange={(e) => set('store', e.target.value)}>
-            {STORES.map((s) => (
-              <option key={s} value={s}>
-                {s}
               </option>
             ))}
           </select>
