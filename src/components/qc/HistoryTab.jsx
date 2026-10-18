@@ -31,7 +31,7 @@ export default function HistoryTab({ entries, referencePoints, referencePointMed
   const handleUpdateCheckerComment = async (id, text) => {
     try {
       await onUpdateCheckerComment(id, text);
-      showToast('確認者コメントを更新しました。', false);
+      showToast('コメントを更新しました。', false);
     } catch (e) {
       showToast('更新に失敗しました：' + e.message, true);
     }

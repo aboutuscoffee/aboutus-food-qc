@@ -1,4 +1,8 @@
+import { useState } from 'react';
+import MediaViewer from './MediaViewer';
+
 export default function PointMediaLightbox({ pointText, media, onClose }) {
+  const [zoom, setZoom] = useState(null);
   return (
     <div
       style={{
@@ -56,11 +60,19 @@ export default function PointMediaLightbox({ pointText, media, onClose }) {
                 リンクを開く ↗
               </a>
             ) : (
-              <img key={m.id} src={m.media_url} alt={m.media_name ?? ''} style={{ height: 160, borderRadius: 6, flexShrink: 0 }} />
+              <img
+                key={m.id}
+                src={m.media_url}
+                alt={m.media_name ?? ''}
+                role="button"
+                onClick={() => setZoom(m)}
+                style={{ height: 160, borderRadius: 6, flexShrink: 0, cursor: 'zoom-in' }}
+              />
             )
           )}
         </div>
       )}
+      {zoom && <MediaViewer src={zoom.media_url} type="image" caption={zoom.media_name || pointText} onClose={() => setZoom(null)} />}
     </div>
   );
 }

@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { pointsForDish, groupByProcess, mediaForPoint } from '../../lib/selectors';
 import PointMediaLightbox from './PointMediaLightbox';
+import MediaViewer from './MediaViewer';
 
 function PointMediaEditor({ point, media, onAddMedia, onDeleteMedia, onAddLink }) {
   const [uploading, setUploading] = useState(false);
   const [linkInput, setLinkInput] = useState('');
   const [linkOpen, setLinkOpen] = useState(false);
+  const [zoom, setZoom] = useState(null);
 
   const handleFile = (e) => {
     const file = e.target.files?.[0];
@@ -62,7 +64,13 @@ function PointMediaEditor({ point, media, onAddMedia, onDeleteMedia, onAddLink }
                   🔗
                 </a>
               ) : (
-                <img src={m.media_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img
+                  src={m.media_url}
+                  alt=""
+                  role="button"
+                  onClick={() => setZoom(m)}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', cursor: 'zoom-in' }}
+                />
               )}
               <button
                 type="button"
@@ -115,6 +123,7 @@ function PointMediaEditor({ point, media, onAddMedia, onDeleteMedia, onAddLink }
           </button>
         </div>
       )}
+      {zoom && <MediaViewer src={zoom.media_url} type="image" caption={zoom.media_name || point.point_text} onClose={() => setZoom(null)} />}
     </div>
   );
 }

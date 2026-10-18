@@ -100,3 +100,27 @@ body {
 .qcf-pin-go { font-size: 12px; background: var(--dark); color: #FAFAFA; border: none; padding: 7px 12px; border-radius: 6px; }
 .qcf-ref-edit-box { background: var(--amber-soft); border-radius: 8px; padding: 10px; margin-top: 10px; }
 .qcf-ref-save-btn { font-size: 12px; background: var(--dark); color: #FAFAFA; border: none; padding: 7px 14px; border-radius: 6px; margin-top: 8px; }
+
+/* --- 写真・動画の拡大表示（body直下にportalで出すため #qcf-app の外に定義） --- */
+.qcf-viewer { position: fixed; inset: 0; z-index: 1000; background: rgba(0, 0, 0, 0.9); display: flex; flex-direction: column; font-family: -apple-system, "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif; color: #fff; }
+.qcf-viewer-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; }
+.qcf-viewer-caption { font-size: 12px; opacity: 0.85; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qcf-viewer-stage { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; touch-action: none; cursor: zoom-in; user-select: none; -webkit-user-select: none; }
+.qcf-viewer-stage.zoomed { cursor: grab; }
+.qcf-viewer-media { max-width: 96vw; max-height: 100%; object-fit: contain; transform-origin: center center; border-radius: 4px; -webkit-user-drag: none; }
+.qcf-viewer-bottom { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 12px; flex-wrap: wrap; }
+.qcf-viewer-btn { background: transparent; color: #fff; border: 0.5px solid rgba(255, 255, 255, 0.45); border-radius: 999px; font-size: 14px; height: 36px; padding: 0 14px; cursor: pointer; font-family: inherit; }
+.qcf-viewer-btn:hover { background: rgba(255, 255, 255, 0.12); }
+.qcf-viewer-round { width: 36px; padding: 0; }
+.qcf-viewer-pct { min-width: 64px; font-size: 13px; }
+.qcf-viewer-replace { margin-left: 8px; font-size: 13px; }
+.qcf-viewer-hint { text-align: center; font-size: 11px; color: rgba(255, 255, 255, 0.65); padding: 0 12px 12px; }
+
+/* --- 拡大できるサムネイル（フォーム・履歴カード共通） --- */
+.qcf-zoomable { position: relative; display: block; width: 100%; padding: 0; border: 0.5px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--page); cursor: zoom-in; }
+.qcf-zoomable img, .qcf-zoomable video { display: block; width: 100%; max-height: 200px; object-fit: contain; }
+.qcf-zoom-badge { position: absolute; right: 6px; bottom: 6px; background: rgba(0, 0, 0, 0.6); color: #fff; border-radius: 6px; padding: 2px 8px; font-size: 11px; pointer-events: none; }
+.qcf-media-actions { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.qcf-media-name { flex: 1; min-width: 0; font-size: 11px; color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qcf-media-btn { font-size: 12px; height: 28px; padding: 0 10px; border: 0.5px solid var(--line); border-radius: 6px; background: #fff; color: var(--ink); }
+.qcf-media-btn:hover { background: var(--amber-soft); }

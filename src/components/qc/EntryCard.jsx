@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { pointsForDish } from '../../lib/selectors';
 import { purposeForCategory } from '../../lib/constants';
 import ReferencePointsView from './ReferencePointsView';
+import MediaViewer from './MediaViewer';
 
 function fmtDate(iso) {
   if (!iso) return '';
@@ -17,6 +18,7 @@ function dispositionStyle(disposition) {
 
 export default function EntryCard({ entry: e, open, onToggle, referencePoints, referencePointMedia, onDelete, onUpdateCheckerComment }) {
   const [refOpen, setRefOpen] = useState(false);
+  const [viewerOpen, setViewerOpen] = useState(false);
   const [editingComment, setEditingComment] = useState(false);
   const [commentDraft, setCommentDraft] = useState(e.checker_comment || '');
   const [savingComment, setSavingComment] = useState(false);
@@ -58,9 +60,33 @@ export default function EntryCard({ entry: e, open, onToggle, referencePoints, r
       <div className={'qcf-entry-detail' + (open ? ' open' : '')}>
         {e.media_name && (
           e.media_type === 'image' && e.media_url ? (
-            <img style={{ maxWidth: '100%', maxHeight: 180, borderRadius: 8, marginBottom: 8, display: 'block' }} src={e.media_url} />
+            <button
+              type="button"
+              className="qcf-zoomable"
+              style={{ width: 'auto', maxWidth: '100%', marginBottom: 8 }}
+              aria-label="写真を拡大"
+              onClick={(ev) => {
+                ev.stopPropagation();
+                setViewerOpen(true);
+              }}
+            >
+              <img src={e.media_url} alt={e.media_name || ''} style={{ maxHeight: 180, width: 'auto', maxWidth: '100%' }} />
+              <span className="qcf-zoom-badge">拡大</span>
+            </button>
           ) : e.media_type === 'video' && e.media_url ? (
-            <video style={{ maxWidth: '100%', maxHeight: 180, borderRadius: 8, marginBottom: 8, display: 'block' }} src={e.media_url} controls />
+            <button
+              type="button"
+              className="qcf-zoomable"
+              style={{ width: 'auto', maxWidth: '100%', marginBottom: 8 }}
+              aria-label="動画を再生"
+              onClick={(ev) => {
+                ev.stopPropagation();
+                setViewerOpen(true);
+              }}
+            >
+              <video src={e.media_url} muted playsInline preload="metadata" style={{ maxHeight: 180, width: 'auto', maxWidth: '100%' }} />
+              <span className="qcf-zoom-badge">再生</span>
+            </button>
           ) : (
             <div style={{ fontSize: 12, marginBottom: 8 }}>🎬 {e.media_name}</div>
           )
@@ -110,7 +136,7 @@ export default function EntryCard({ entry: e, open, onToggle, referencePoints, r
           </div>
         ) : (
           <div style={{ fontSize: 12, background: 'var(--amber-soft)', borderRadius: 8, padding: '8px 10px', marginBottom: 8 }}>
-            確認者コメント：{e.checker_comment || '—'}
+            コメント：{e.checker_comment || '—'}
             <button
               type="button"
               onClick={startEditComment}
@@ -148,6 +174,9 @@ export default function EntryCard({ entry: e, open, onToggle, referencePoints, r
           この記録を削除
         </button>
       </div>
+      {viewerOpen && e.media_url && (
+        <MediaViewer src={e.media_url} type={e.media_type === 'video' ? 'video' : 'image'} caption={`${e.dish_name || ''} ${fmtDate(e.date)}`.trim()} onClose={() => setViewerOpen(false)} />
+      )}
     </div>
   );
 }

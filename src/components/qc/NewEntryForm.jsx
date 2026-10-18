@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { STORES, CATEGORIES, MENUS, purposeForCategory } from '../../lib/constants';
 import { pointsForDish } from '../../lib/selectors';
 import ReferencePointsView from './ReferencePointsView';
+import MediaViewer from './MediaViewer';
 
 function today() {
   return new Date().toISOString().slice(0, 10);
@@ -28,6 +29,8 @@ export default function NewEntryForm({ referencePoints, referencePointMedia, onU
   const [media, setMedia] = useState(null); // { file, previewUrl, type }
   const [refPanelOpen, setRefPanelOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const mediaInputRef = useRef(null);
 
   const set = (field, value) => setDraft((d) => ({ ...d, [field]: value }));
 
@@ -35,12 +38,23 @@ export default function NewEntryForm({ referencePoints, referencePointMedia, onU
   const refPurpose = purposeForCategory(draft.category);
   const dishPoints = pointsForDish(referencePoints, draft.dishName, refPurpose);
 
+  const clearMedia = () => {
+    setMedia((prev) => {
+      if (prev?.previewUrl) URL.revokeObjectURL(prev.previewUrl);
+      return null;
+    });
+    setViewerOpen(false);
+  };
+
   const handleMediaChange = (e) => {
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
     const type = file.type.startsWith('video/') ? 'video' : 'image';
-    setMedia({ file, previewUrl: type === 'image' ? URL.createObjectURL(file) : null, type, name: file.name });
+    setMedia((prev) => {
+      if (prev?.previewUrl) URL.revokeObjectURL(prev.previewUrl);
+      return { file, previewUrl: URL.createObjectURL(file), type, name: file.name };
+    });
   };
 
   const handleSave = async () => {
@@ -81,7 +95,7 @@ export default function NewEntryForm({ referencePoints, referencePointMedia, onU
       });
       showToast('記録を保存しました。', false);
       setDraft(emptyDraft());
-      setMedia(null);
+      clearMedia();
       setRefPanelOpen(false);
     } catch (e) {
       showToast('保存に失敗しました：' + e.message, true);
@@ -155,8 +169,8 @@ export default function NewEntryForm({ referencePoints, referencePointMedia, onU
         </div>
       </div>
       <div className="qcf-field" style={{ marginTop: 10 }}>
-        <label>確認者コメント</label>
-        <textarea rows={2} placeholder="確認者からのコメント・指示など" value={draft.checkerComment} onChange={(e) => set('checkerComment', e.target.value)} />
+        <label>コメント</label>
+        <textarea rows={2} placeholder="コメント・指示など" value={draft.checkerComment} onChange={(e) => set('checkerComment', e.target.value)} />
       </div>
 
       {dishPoints.length > 0 && (
@@ -215,27 +229,45 @@ export default function NewEntryForm({ referencePoints, referencePointMedia, onU
           </div>
           <div className="qcf-field">
             <label htmlFor="qcf-media-input">写真または動画</label>
-            <label className="qcf-media-zone" htmlFor="qcf-media-input">
-              {media ? (
-                media.type === 'image' ? (
-                  <>
-                    <img className="qcf-media-thumb" src={media.previewUrl} />
-                    <div style={{ fontSize: 11, color: 'var(--ink-soft)', marginTop: 4 }}>{media.name}</div>
-                  </>
-                ) : (
-                  <>
-                    <div style={{ fontSize: 22, marginBottom: 4 }}>🎬</div>
-                    <div style={{ fontSize: 12, fontWeight: 500 }}>{media.name}</div>
-                  </>
-                )
-              ) : (
-                <>
-                  <div style={{ fontSize: 12, color: 'var(--ink-soft)' }}>タップしてファイルを選択</div>
-                  <div style={{ fontSize: 11, color: 'var(--ink-soft)', marginTop: 4 }}>写真・動画に対応</div>
-                </>
-              )}
-            </label>
-            <input id="qcf-media-input" type="file" accept="image/*,video/*" style={{ display: 'none' }} onChange={handleMediaChange} />
+            {media ? (
+              <>
+                <button
+                  type="button"
+                  className="qcf-zoomable"
+                  aria-label={media.type === 'image' ? '写真を拡大' : '動画を再生'}
+                  onClick={() => setViewerOpen(true)}
+                >
+                  {media.type === 'image' ? (
+                    <img src={media.previewUrl} alt={media.name} />
+                  ) : (
+                    <video src={media.previewUrl} muted playsInline preload="metadata" />
+                  )}
+                  <span className="qcf-zoom-badge">{media.type === 'image' ? '拡大' : '再生'}</span>
+                </button>
+                <div className="qcf-media-actions">
+                  <span className="qcf-media-name">{media.name}</span>
+                  <button type="button" className="qcf-media-btn" onClick={() => mediaInputRef.current?.click()}>
+                    変更
+                  </button>
+                  <button type="button" className="qcf-media-btn" onClick={clearMedia}>
+                    削除
+                  </button>
+                </div>
+              </>
+            ) : (
+              <label className="qcf-media-zone" htmlFor="qcf-media-input">
+                <div style={{ fontSize: 12, color: 'var(--ink-soft)' }}>タップしてファイルを選択</div>
+                <div style={{ fontSize: 11, color: 'var(--ink-soft)', marginTop: 4 }}>写真・動画に対応</div>
+              </label>
+            )}
+            <input
+              ref={mediaInputRef}
+              id="qcf-media-input"
+              type="file"
+              accept="image/*,video/*"
+              style={{ display: 'none' }}
+              onChange={handleMediaChange}
+            />
           </div>
         </div>
         <div className="qcf-field">
@@ -260,6 +292,19 @@ export default function NewEntryForm({ referencePoints, referencePointMedia, onU
         {saving ? '保存中…' : '記録を保存'}
       </button>
       <p className="qcf-note">保存したデータは伏見・二条の全スタッフと共有されます</p>
+
+      {viewerOpen && media && (
+        <MediaViewer
+          src={media.previewUrl}
+          type={media.type}
+          caption={media.name}
+          onClose={() => setViewerOpen(false)}
+          onReplace={() => {
+            setViewerOpen(false);
+            mediaInputRef.current?.click();
+          }}
+        />
+      )}
     </>
   );
 }
