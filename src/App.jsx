@@ -10,6 +10,8 @@ import {
   deletePointMedia,
   addPointLink,
   updateCheckerComment,
+  addDishPhoto,
+  deleteDishPhoto,
 } from './lib/db';
 import NewEntryForm from './components/qc/NewEntryForm';
 import HistoryTab from './components/qc/HistoryTab';
@@ -86,6 +88,17 @@ export default function App() {
     return saved;
   }, []);
 
+  const onAddDishPhoto = useCallback(async (dishName, purpose, file) => {
+    const saved = await addDishPhoto(dishName, purpose, file);
+    setData((d) => ({ ...d, dishPhotos: [...d.dishPhotos, saved] }));
+    return saved;
+  }, []);
+
+  const onDeleteDishPhoto = useCallback(async (id) => {
+    await deleteDishPhoto(id);
+    setData((d) => ({ ...d, dishPhotos: d.dishPhotos.filter((p) => p.id !== id) }));
+  }, []);
+
   const changeTab = (tab) => {
     setActiveTab(tab);
     setToast(null);
@@ -146,6 +159,9 @@ export default function App() {
             onAddMedia={onAddMedia}
             onDeleteMedia={onDeleteMedia}
             onAddLink={onAddLink}
+            dishPhotos={data.dishPhotos}
+            onAddDishPhoto={onAddDishPhoto}
+            onDeleteDishPhoto={onDeleteDishPhoto}
             showToast={showToast}
           />
         )}

@@ -2,10 +2,11 @@ import { supabase } from './supabase';
 import { NOTIFY_STAFF_KEY } from './constants';
 
 export async function fetchAll() {
-  const [entries, referencePoints, referencePointMedia] = await Promise.all([
+  const [entries, referencePoints, referencePointMedia, dishPhotos] = await Promise.all([
     supabase.from('qc_entries').select('*').order('date', { ascending: false }),
     supabase.from('qc_reference_points').select('*').order('sort_order'),
     supabase.from('qc_reference_point_media').select('*').order('sort_order'),
+    supabase.from('qc_reference_dish_photos').select('*').order('sort_order').order('id'),
   ]);
 
   for (const res of [entries, referencePoints, referencePointMedia]) {
@@ -16,6 +17,8 @@ export async function fetchAll() {
     entries: entries.data ?? [],
     referencePoints: referencePoints.data ?? [],
     referencePointMedia: referencePointMedia.data ?? [],
+    // 完成写真テーブル未作成でもアプリ全体は動くようにする
+    dishPhotos: dishPhotos.error ? [] : dishPhotos.data ?? [],
   };
 }
 
@@ -121,4 +124,20 @@ export async function addPointLink(pointId, url) {
     .single();
   if (error) throw new Error(error.message);
   return data;
+}
+
+export async function addDishPhoto(dishName, purpose, file) {
+  const uploaded = await uploadPointMedia(file);
+  const { data, error } = await supabase
+    .from('qc_reference_dish_photos')
+    .insert({ dish_name: dishName, purpose, media_url: uploaded.url, media_name: uploaded.name })
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return data;
+}
+
+export async function deleteDishPhoto(id) {
+  const { error } = await supabase.from('qc_reference_dish_photos').delete().eq('id', id);
+  if (error) throw new Error(error.message);
 }

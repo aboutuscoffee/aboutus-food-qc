@@ -11,6 +11,9 @@ export default function ReferenceTab({
   onAddMedia,
   onDeleteMedia,
   onAddLink,
+  dishPhotos,
+  onAddDishPhoto,
+  onDeleteDishPhoto,
   showToast,
 }) {
   const [isManager, setIsManager] = useState(false);
@@ -55,6 +58,9 @@ export default function ReferenceTab({
           onAddMedia={wrap(onAddMedia)}
           onDeleteMedia={wrap(onDeleteMedia)}
           onAddLink={wrap(onAddLink)}
+          photos={dishPhotos.filter((p) => p.dish_name === name && p.purpose === purpose)}
+          onAddPhoto={wrap(onAddDishPhoto)}
+          onDeletePhoto={wrap(onDeleteDishPhoto)}
         />
       );
     });
